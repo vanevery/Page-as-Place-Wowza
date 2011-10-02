@@ -12,9 +12,9 @@ import com.wowza.wms.httpstreamer.cupertinostreaming.httpstreamer.*;
 import com.wowza.wms.httpstreamer.smoothstreaming.httpstreamer.*;
 
 public class PageAsPlace extends ModuleBase {
-
+	
 	int currentClientPosition = 0;
-	IClient[] connectedClients = new IClient[4];
+	PAPClient[] connectedClients = new PAPClient[20];
 	
 	public void doSomething(IClient client, RequestFunction function, AMFDataList params) {
 		getLogger().info("doSomething");
@@ -29,7 +29,7 @@ public class PageAsPlace extends ModuleBase {
 		
 		// Let's find out who we are and who they are
 		for (int i = 0; i < connectedClients.length; i++) {
-			if (connectedClients[i] != null && connectedClients[i].equals(client)) {
+			if (connectedClients[i] != null && connectedClients[i].client.equals(client)) {
 				iam = "stream" + i;
 			} else if (connectedClients[i] != null) {
 				theyare += ":stream" + i; 
@@ -41,6 +41,19 @@ public class PageAsPlace extends ModuleBase {
 		getLogger().info(resultString);
 
 		sendResult(client, params, resultString);
+	}
+	
+	public void getUrls(IClient client, RequestFunction function, AMFDataList params) {
+		getLogger().info("getUrls");
+		
+		StringBuilder resultStringBuilder = new StringBuilder();
+		for (int i = 0; i < connectedClients.length; i++) {
+			if (connectedClients[i] != null && !connectedClients[i].client.equals(client) && connectedClients[i].currentURL != null) {
+				resultStringBuilder.append(connectedClients[i] + "\n");
+			}
+		}
+		
+		sendResult(client, params, resultStringBuilder.toString());
 	}
 	
 	public void onAppStart(IApplicationInstance appInstance) {
@@ -64,7 +77,7 @@ public class PageAsPlace extends ModuleBase {
 		boolean done = false;
 		for (int i = 0; i < connectedClients.length && !done; i++) {
 			if (connectedClients[i] == null) {
-				connectedClients[i] = client;
+				connectedClients[i] = new PAPClient(client);
 				client.acceptConnection();
 				done = true;
 			}
@@ -91,6 +104,15 @@ public class PageAsPlace extends ModuleBase {
 			if (connectedClients != null && connectedClients[i].equals(client)) {
 				connectedClients[i] = null;
 			}
+		}
+	}
+	
+	class PAPClient {
+		IClient client;
+		String currentURL;
+		String streamName;
+		PAPClient (IClient client) {
+			this.client = client;
 		}
 	}
 
