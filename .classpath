@@ -6,7 +6,6 @@
 	<classpathentry kind="lib" path="/Library/WowzaMediaServer/lib/commons-lang-2.5.jar"/>
 	<classpathentry kind="lib" path="/Library/WowzaMediaServer/lib/jid3lib-0.5.4.jar"/>
 	<classpathentry kind="lib" path="/Library/WowzaMediaServer/lib/log4j-1.2.16.jar"/>
-	<classpathentry kind="lib" path="/Library/WowzaMediaServer/lib/mywowzamodule.jar"/>
 	<classpathentry kind="lib" path="/Library/WowzaMediaServer/lib/Test.jar"/>
 	<classpathentry kind="lib" path="/Library/WowzaMediaServer/lib/wms-ant.jar">
 		<attributes>
