@@ -47,6 +47,10 @@ public class PageAsPlace extends ModuleBase {
 		getLogger().info("getUrls");
 		
 		StringBuilder resultStringBuilder = new StringBuilder();
+		
+		resultStringBuilder.append("http://www.google.com/\n");
+		resultStringBuilder.append("http://itp.nyu.edu/\n");
+		
 		for (int i = 0; i < connectedClients.length; i++) {
 			if (connectedClients[i] != null && !connectedClients[i].client.equals(client) && connectedClients[i].currentURL != null) {
 				resultStringBuilder.append(connectedClients[i] + "\n");
@@ -54,6 +58,34 @@ public class PageAsPlace extends ModuleBase {
 		}
 		
 		sendResult(client, params, resultStringBuilder.toString());
+	}
+	
+	public void newUrl(IClient client, RequestFunction function, AMFDataList params) {
+		getLogger().info("newUrl");
+		
+		String previousUrl = "";
+		for (int i = 0; i < connectedClients.length; i++) {
+			if (connectedClients[i] != null && connectedClients[i].client.equals(client)) {
+				previousUrl = connectedClients[i].currentURL;
+				//TODO
+				// Need to set currentURL
+				// How to know what the URL is?  In params?
+				connectedClients[i].currentURL = "";
+			}
+		}
+		
+		for (int j = 0; j < connectedClients.length; j++) {
+			if (connectedClients[j] != null && !connectedClients[j].client.equals(client) && connectedClients[j].currentURL.equals(previousUrl)) {
+				//TODO
+				// Need to set currentURL
+				connectedClients[j].currentURL = "";
+				//TODO
+				// Need to tell client to navigate
+				// How to call a function on the client
+			}
+		}
+		
+		
 	}
 	
 	public void onAppStart(IApplicationInstance appInstance) {
@@ -101,7 +133,7 @@ public class PageAsPlace extends ModuleBase {
 		getLogger().info("onDisconnect: " + client.getClientId());
 		
 		for (int i = 0; i < connectedClients.length; i++) {
-			if (connectedClients != null && connectedClients[i].equals(client)) {
+			if (connectedClients[i] != null && connectedClients[i].client.equals(client)) {
 				connectedClients[i] = null;
 			}
 		}
