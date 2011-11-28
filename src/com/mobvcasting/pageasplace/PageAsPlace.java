@@ -63,6 +63,26 @@ public class PageAsPlace extends ModuleBase {
 		sendResult(client, params, resultStringBuilder.toString());
 	}
 	
+	// EXAMPLE: returning an object to the client
+	/*
+	public void c2sReturnObject(IClient client, RequestFunction function, AMFDataList params)
+	{
+		String res = "";
+		WMSLogger log = getLogger();
+
+		AMFDataObj retObj = new AMFDataObj();
+
+		retObj.put("val1", new AMFDataItem("Hello Wowza 1"));
+		retObj.put("val2", new AMFDataItem(3456));
+		retObj.put("val3", new AMFDataItem(true));
+
+		res = retObj.toString();
+		log.info(res);
+
+		sendResult(client, params, retObj);
+	}	
+	*/
+	
 	public void newUrl(IClient client, RequestFunction function, AMFDataList params) {
 		getLogger().info("newUrl");
 		getLogger().info("AMFDataList: " + params.toString());
@@ -72,19 +92,44 @@ public class PageAsPlace extends ModuleBase {
 		
 		// Make HTTP Request here!
 		/*
-		URL theUrl = new URL("http://www.yahoo.com/");
-		Ê Ê Ê Ê URLConnection yc = yahoo.openConnection();
-		Ê Ê Ê Ê BufferedReader in = new BufferedReader(
-		Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê new InputStreamReader(
-		Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê Ê yc.getInputStream()));
-		Ê Ê Ê Ê String inputLine;
-
-		Ê Ê Ê Ê while ((inputLine = in.readLine()) != null) 
-		Ê Ê Ê Ê Ê Ê System.out.println(inputLine);
-		Ê Ê Ê Ê in.close();
-		Ê Ê }
+		StringBuilder htmlSource = new StringBuilder();
+		try {
+			URL theUrl = new URL(passedUrl);
+			URLConnection urlConn = theUrl.openConnection();
+			BufferedReader in = new BufferedReader(new InputStreamReader(urlConn.getInputStream()));
+			String inputLine;
+			while ((inputLine = in.readLine()) != null) {
+				htmlSource.append(inputLine);
+			}
+			in.close();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		*/
+		
+		/*
+		XmlHttpProxy xhp = new XmlHttpProxy();
+
+		InputStream xslInputStream = null;
+		String urlString = 
+			"http://api.local.yahoo.com/MapsService/V1/geocode" +
+				"?appid=jmaki-key&location=sunnyvale";
+		String xslURLString = 
+			"http://localhost:8080/jmaki/resources/xsl/yahoo-geocoder.xsl";
+		
+		Map paramsMap = new HashMap();
+		// add parameters if any here
+		
+		URL xslURL = new URL(xslURLString);
+		if (xslURL != null) {
+		    xslInputStream  = xslURL.openStream();
+		} else {
+		   System.err.println(	"Error: Unable to locate XSL at URL " + xslURLString);
+		}	    
+		xhp.doGet(urlString, System.out, xslInputStream, paramsMap);
+		 */
 		
 		String previousUrl = "";
 		for (int i = 0; i < connectedClients.length; i++) {
@@ -98,10 +143,10 @@ public class PageAsPlace extends ModuleBase {
 		
 		for (int j = 0; j < connectedClients.length; j++) {
 			//if (connectedClients[j] != null && !connectedClients[j].client.equals(client) && connectedClients[j].currentURL.equals(previousUrl)) {
-			//if (connectedClients[j] != null && connectedClients[j].currentURL.equals(previousUrl)) {
-			if (connectedClients[j] != null) {
+			if (connectedClients[j] != null && connectedClients[j].currentURL.equals(previousUrl)) {
+			//if (connectedClients[j] != null) {
 				getLogger().info("Have a client with the right previous URL");
-				//TODO
+
 				// Need to set currentURL
 				connectedClients[j].currentURL = passedUrl;
 
@@ -116,9 +161,12 @@ public class PageAsPlace extends ModuleBase {
 						log.info(param1);
 					}
 				}
-				// Call the method on the client
-				connectedClients[j].client.call("newUrl", new s2cParamsSimpleResult(), passedUrl);
+				
+				// Call the method on the client (assuming we have HTML)
+				//connectedClients[j].client.call("newUrl", new s2cParamsSimpleResult(), passedUrl, htmlSource.toString());
 
+				// Cal the method on the client with no HTML
+				connectedClients[j].client.call("newUrl", new s2cParamsSimpleResult(), passedUrl);
 			}
 			else if (connectedClients[j] != null) {
 				getLogger().info("Wrong previous URL");
@@ -138,8 +186,7 @@ public class PageAsPlace extends ModuleBase {
 		getLogger().info("onAppStop: " + fullname);
 	}
 
-	public void onConnect(IClient client, RequestFunction function,
-			AMFDataList params) {
+	public void onConnect(IClient client, RequestFunction function, AMFDataList params) {
 		getLogger().info("onConnect: " + client.getClientId());
 		
 		String passedUrl = getParamString(params,PARAM1);
@@ -162,7 +209,6 @@ public class PageAsPlace extends ModuleBase {
 		if (!done) {
 			client.rejectConnection();
 		}
-		
 	}
 
 	public void onConnectAccept(IClient client) {
@@ -185,11 +231,13 @@ public class PageAsPlace extends ModuleBase {
 	
 	class PAPClient {
 		IClient client;
+		IClient following;
 		String currentURL;
 		String streamName;
+		
 		PAPClient (IClient client) {
 			this.client = client;
-		}
+		}		
 	}
 
 }
